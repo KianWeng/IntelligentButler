@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="LineWaveVoiceView">
+        <attr name="voiceLineColor" format="color"/>
+        <attr name="voiceLineWidth" format="dimension"/>
+    </declare-styleable>
+</resources>
