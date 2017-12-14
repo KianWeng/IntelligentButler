@@ -16,17 +16,23 @@ import android.widget.TextView;
 import com.ant.liao.GifView;
 import com.baidu.speech.asr.SpeechConstant;
 import com.kian.intelligentbutler.baidu_speech.BaiduRecognizer;
+import com.kian.intelligentbutler.baidu_speech.BaiduWakeup;
+import com.kian.intelligentbutler.baidu_speech.recognization.PidBuilder;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.CommonRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.IStatus;
 import com.kian.intelligentbutler.baidu_speech.recognization.StatusRecogListener;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.AllRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.NluRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.OfflineRecogParams;
+import com.kian.intelligentbutler.baidu_speech.wakeup.IWakeupListener;
+import com.kian.intelligentbutler.baidu_speech.wakeup.RecogWakeupListener;
+import com.kian.intelligentbutler.baidu_speech.wakeup.WakeupParams;
 import com.kian.intelligentbutler.ui.LineWaveVoiceView;
 import com.kian.intelligentbutler.ui.RecognizerView;
 import com.kian.intelligentbutler.util.PPLog;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements RecognizerView.IRecordAudioListener,IStatus{
@@ -37,10 +43,19 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     private RecognizerView recordAudioView;
     private TextView tvRecordTips;
     protected BaiduRecognizer myRecognizer;
+    protected BaiduWakeup myWakeup;
     protected int status;
     protected boolean enableOffline = false;
     protected CommonRecogParams apiParams;
     private Handler handler;
+    /**
+     *  0: 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
+     * >0 : 方案2： 唤醒词说完后，中间有停顿，然后接句子。推荐4个字 1500ms
+     *
+     *  backTrackInMs 最大 15000，即15s
+     */
+    private int backTrackInMs = 1500;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +75,13 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         initView();
         initPermission();
         initRecog();
+        startWakeup();
+    }
+
+    private void startWakeup(){
+        WakeupParams wakeupParams = new WakeupParams(this);
+        Map<String,Object> params = wakeupParams.fetch();
+        myWakeup.start(params);
     }
 
     private void initView(){
@@ -89,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
      * 在onCreate中调用。初始化识别控制类MyRecognizer
      */
     protected void initRecog() {
+        //init recognization
         StatusRecogListener listener = new StatusRecogListener(handler);
         listener.setVoiceView(mHorVoiceView);
         myRecognizer = new BaiduRecognizer(this, listener);
@@ -97,6 +120,10 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         if (enableOffline) {
             myRecognizer.loadOfflineEngine(OfflineRecogParams.fetchOfflineParams());
         }
+
+        //init wakeup
+        IWakeupListener wakeupListener = new RecogWakeupListener(handler);
+        myWakeup = new BaiduWakeup(this, wakeupListener);
     }
 
     protected CommonRecogParams getApiParams() {
@@ -114,6 +141,19 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
             case STATUS_SPEAKING:
             case STATUS_RECOGNITION:
                 status = msg.what;
+                break;
+            case STATUS_WAKEUP_SUCCESS:
+                Map<String, Object> params = new LinkedHashMap<String, Object>();
+                params.put(SpeechConstant.ACCEPT_AUDIO_VOLUME, false);
+                params.put(SpeechConstant.VAD,SpeechConstant.VAD_DNN);
+                int pid = PidBuilder.create().model(PidBuilder.INPUT).toPId(); //如识别短句，不需要需要逗号，将PidBuilder.INPUT改为搜索模型PidBuilder.SEARCH
+                params.put(SpeechConstant.PID,pid);
+                if (backTrackInMs > 0) { // 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
+                    params.put(SpeechConstant.AUDIO_MILLS, System.currentTimeMillis() - backTrackInMs);
+
+                }
+                myRecognizer.cancel();
+                myRecognizer.start(params);
                 break;
         }
 
@@ -157,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     @Override
     protected void onDestroy() {
         myRecognizer.release();
+        myWakeup.release();
         PPLog.i(TAG, "onDestory");
         super.onDestroy();
     }
