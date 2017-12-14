@@ -20,6 +20,7 @@ import com.kian.intelligentbutler.baidu_speech.recognization.params.CommonRecogP
 import com.kian.intelligentbutler.baidu_speech.recognization.IStatus;
 import com.kian.intelligentbutler.baidu_speech.recognization.StatusRecogListener;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.AllRecogParams;
+import com.kian.intelligentbutler.baidu_speech.recognization.params.NluRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.OfflineRecogParams;
 import com.kian.intelligentbutler.ui.LineWaveVoiceView;
 import com.kian.intelligentbutler.ui.RecognizerView;
@@ -46,9 +47,6 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        sp.edit().remove(SpeechConstant.IN_FILE).commit(); // infile参数用于控制识别一个PCM音频流（或文件），每次进入程序都将该值清除，以避免体验时没有使用录音的问题
-
         handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -58,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
 
         };
 
+        initParams();
         initView();
         initPermission();
         initRecog();
@@ -77,6 +76,15 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         recordAudioView.setRecordAudioListener(this);
     }
 
+    public void initParams(){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.remove(SpeechConstant.IN_FILE); // infile参数用于控制识别一个PCM音频流（或文件），每次进入程序都将该值清除，以避免体验时没有使用录音的问题
+        editor.putBoolean("_nlu_online",true);
+        editor.putString("_model","search");
+        editor.putString("_language","cmn-Hans-CN");
+        editor.commit();
+    }
     /**
      * 在onCreate中调用。初始化识别控制类MyRecognizer
      */
