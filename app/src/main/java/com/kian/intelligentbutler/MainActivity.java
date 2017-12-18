@@ -16,13 +16,13 @@ import android.widget.TextView;
 import com.ant.liao.GifView;
 import com.baidu.speech.asr.SpeechConstant;
 import com.kian.intelligentbutler.baidu_speech.BaiduRecognizer;
+import com.kian.intelligentbutler.baidu_speech.BaiduUnit;
 import com.kian.intelligentbutler.baidu_speech.BaiduWakeup;
 import com.kian.intelligentbutler.baidu_speech.recognization.PidBuilder;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.CommonRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.IStatus;
 import com.kian.intelligentbutler.baidu_speech.recognization.StatusRecogListener;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.AllRecogParams;
-import com.kian.intelligentbutler.baidu_speech.recognization.params.NluRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.OfflineRecogParams;
 import com.kian.intelligentbutler.baidu_speech.wakeup.IWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.RecogWakeupListener;
@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     private TextView tvRecordTips;
     protected BaiduRecognizer myRecognizer;
     protected BaiduWakeup myWakeup;
+    protected BaiduUnit myUnit;
     protected int status;
     protected boolean enableOffline = false;
     protected CommonRecogParams apiParams;
@@ -124,6 +125,10 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         //init wakeup
         IWakeupListener wakeupListener = new RecogWakeupListener(handler);
         myWakeup = new BaiduWakeup(this, wakeupListener);
+
+        //init unit
+        myUnit = new BaiduUnit(this);
+        myUnit.initAccessToken();
     }
 
     protected CommonRecogParams getApiParams() {

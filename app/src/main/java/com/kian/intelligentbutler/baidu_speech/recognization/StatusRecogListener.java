@@ -2,8 +2,16 @@ package com.kian.intelligentbutler.baidu_speech.recognization;
 import android.os.Handler;
 import android.os.Message;
 
+import com.google.gson.Gson;
+import com.kian.intelligentbutler.baidu_speech.domain.CommonDomain;
+import com.kian.intelligentbutler.baidu_speech.domain.DomainService;
+import com.kian.intelligentbutler.baidu_speech.domain.WeatherDomain;
 import com.kian.intelligentbutler.ui.LineWaveVoiceView;
 import com.kian.intelligentbutler.util.PPLog;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by Kian on 2017/12/11.
@@ -102,6 +110,7 @@ public class StatusRecogListener implements IRecogListener,IStatus {
         status = STATUS_FINISHED;
         if (!nluResult.isEmpty()) {
             sendMessage("原始语义识别结果json：" + nluResult, status);
+            DomainService.getInstance().handleNluResult(nluResult);
         }
     }
 
