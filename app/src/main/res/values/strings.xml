@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">IntelligentButler</string>
     <string name="ar_feed_sound_press_record">按住说话</string>
+    <string name="introduce">我是您的家庭智能管家公羽启皓，您可以喊“公羽启皓”来唤醒我为您提供服务！</string>
 </resources>

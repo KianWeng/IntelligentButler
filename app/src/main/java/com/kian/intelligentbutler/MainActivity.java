@@ -8,6 +8,7 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -29,11 +30,14 @@ import com.kian.intelligentbutler.baidu_speech.wakeup.IWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.RecogWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.WakeupParams;
 import com.kian.intelligentbutler.ui.LineWaveVoiceView;
+import com.kian.intelligentbutler.ui.MyAdapter;
+import com.kian.intelligentbutler.ui.NoScrollViewPager;
 import com.kian.intelligentbutler.ui.RecognizerView;
 import com.kian.intelligentbutler.util.PPLog;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements RecognizerView.IRecordAudioListener,IStatus{
@@ -43,6 +47,9 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     private LineWaveVoiceView mHorVoiceView;
     private RecognizerView recordAudioView;
     private TextView tvRecordTips;
+    private NoScrollViewPager noScrollViewPager;
+    private List<View> viewLists = new ArrayList<View>();
+    private MyAdapter myAdapter;
     protected BaiduRecognizer myRecognizer;
     protected BaiduWakeup myWakeup;
     protected BaiduUnit myUnit;
@@ -95,14 +102,6 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                         PPLog.i(TAG,"audio permission is granted ,start wakeup service.");
                         startWakeup();
                         myTTSAPIService = TTSAPIService.getInstance();
-//                        try {
-//                            Thread.sleep(1500);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//
-//                        if (myTTSAPIService.isReady())
-//                            myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
                         break;
                     }
                     try {
@@ -111,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                         e.printStackTrace();
                     }
                     PPLog.i(TAG,"audioPermission is " + audioPermission + " wait until audio permission is granted.");
-
                 }
             }
         });
@@ -134,6 +132,31 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         gifView.setGifImage(R.mipmap.cotana02);
         gifView.setShowDimension(300,300);
         gifView.setGifImageType(GifView.GifImageType.COVER);
+
+        //init noscrollviewpager
+        noScrollViewPager = (NoScrollViewPager) findViewById(R.id.noscrollviewpager);
+        viewLists.add(getLayoutInflater().inflate(R.layout.welcome, null));
+        viewLists.add(getLayoutInflater().inflate(R.layout.weather, null));
+        viewLists.add(getLayoutInflater().inflate(R.layout.monitor, null));
+        myAdapter = new MyAdapter(viewLists);
+        noScrollViewPager.setAdapter(myAdapter);
+        noScrollViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                PPLog.i(TAG,"current view position is " + position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        noScrollViewPager.setCurrentItem(0,true);
 
         recordAudioView.setRecordAudioListener(this);
     }
@@ -243,7 +266,9 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     @Override
     protected void onDestroy() {
         myRecognizer.release();
+        myWakeup.stop();
         myWakeup.release();
+        myTTSAPIService.release();
         PPLog.i(TAG, "onDestory");
         super.onDestroy();
     }
