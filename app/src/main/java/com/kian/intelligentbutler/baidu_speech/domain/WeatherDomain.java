@@ -3,6 +3,7 @@ package com.kian.intelligentbutler.baidu_speech.domain;
 import com.google.gson.Gson;
 import com.kian.intelligentbutler.api.weather.Weather;
 import com.kian.intelligentbutler.api.weather.WeatherParser;
+import com.kian.intelligentbutler.baidu_speech.tts.TTSAPIService;
 import com.kian.intelligentbutler.baidu_speech.unit.OnResultListener;
 import com.kian.intelligentbutler.baidu_speech.unit.UnitError;
 import com.kian.intelligentbutler.util.HttpUtil;
@@ -20,6 +21,7 @@ public class WeatherDomain {
     private static final String BASE_WEATHER_URL = "https://free-api.heweather.com/s6/weather?";
     private DomainObjects objects;
     private CommonDomain commonDomain;
+    private TTSAPIService myTTSAPIService;
 
     public WeatherDomain(CommonDomain commonDomain){
         this.commonDomain = commonDomain;
@@ -63,8 +65,11 @@ public class WeatherDomain {
     }
 
     private void handleResponse(Weather result){
-        if(result.daily_forecast != null)
-            PPLog.i(TAG,result.daily_forecast.get(0).cond_txt_d);
+        if(result.daily_forecast != null) {
+            PPLog.i(TAG, result.daily_forecast.get(0).cond_txt_d);
+            myTTSAPIService = TTSAPIService.getInstance();
+            myTTSAPIService.speak("今天的天气是" + result.daily_forecast.get(0).cond_txt_d);
+        }
     }
 
     private DomainObjects jsonParser(JSONObject jsonObject){

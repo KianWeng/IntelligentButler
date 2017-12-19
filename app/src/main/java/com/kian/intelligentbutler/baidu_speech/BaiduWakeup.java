@@ -25,7 +25,7 @@ public class BaiduWakeup {
     private EventManager wp;
     private EventListener eventListener;
 
-    private static final String TAG = "MyWakeup";
+    private static final String TAG = "BaiduWakeup";
 
     public BaiduWakeup(Context context, EventListener eventListener) {
         if (isInited) {
@@ -43,7 +43,7 @@ public class BaiduWakeup {
     }
     public void start(Map<String, Object> params) {
         String json = new JSONObject(params).toString();
-        PPLog.i(TAG + ".Debug", "wakeup params(反馈请带上此行日志):" + json);
+        PPLog.i(TAG, "wakeup params(反馈请带上此行日志):" + json);
         wp.send(SpeechConstant.WAKEUP_START, json, null, 0, 0);
     }
 

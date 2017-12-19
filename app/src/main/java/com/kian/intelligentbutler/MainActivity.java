@@ -24,6 +24,7 @@ import com.kian.intelligentbutler.baidu_speech.recognization.IStatus;
 import com.kian.intelligentbutler.baidu_speech.recognization.StatusRecogListener;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.AllRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.OfflineRecogParams;
+import com.kian.intelligentbutler.baidu_speech.tts.TTSAPIService;
 import com.kian.intelligentbutler.baidu_speech.wakeup.IWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.RecogWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.WakeupParams;
@@ -45,10 +46,12 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     protected BaiduRecognizer myRecognizer;
     protected BaiduWakeup myWakeup;
     protected BaiduUnit myUnit;
+    protected TTSAPIService myTTSAPIService;
     protected int status;
     protected boolean enableOffline = false;
     protected CommonRecogParams apiParams;
     private Handler handler;
+    private static boolean audioPermission = false;
     /**
      *  0: 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
      * >0 : 方案2： 唤醒词说完后，中间有停顿，然后接句子。推荐4个字 1500ms
@@ -76,7 +79,39 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         initView();
         initPermission();
         initRecog();
-        startWakeup();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //wait 500ms
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                while (true) {
+                    PPLog.i(TAG,"audioPermission is " + audioPermission + " wait until audio permission is granted.");
+                    if(audioPermission) {
+                        PPLog.i(TAG,"audio permission is granted ,start wakeup service.");
+                        startWakeup();
+                        myTTSAPIService = TTSAPIService.getInstance();
+
+                        try {
+                            Thread.sleep(1500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (myTTSAPIService.isReady())
+                            myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
+                        break;
+                    }
+
+                }
+            }
+        });
+        thread.start();
     }
 
     private void startWakeup(){
@@ -151,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                 Map<String, Object> params = new LinkedHashMap<String, Object>();
                 params.put(SpeechConstant.ACCEPT_AUDIO_VOLUME, false);
                 params.put(SpeechConstant.VAD,SpeechConstant.VAD_DNN);
-                int pid = PidBuilder.create().model(PidBuilder.INPUT).toPId(); //如识别短句，不需要需要逗号，将PidBuilder.INPUT改为搜索模型PidBuilder.SEARCH
+                int pid = PidBuilder.create().model(PidBuilder.SEARCH).toPId(); //如识别短句，不需要需要逗号，将PidBuilder.INPUT改为搜索模型PidBuilder.SEARCH
                 params.put(SpeechConstant.PID,pid);
                 if (backTrackInMs > 0) { // 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
                     params.put(SpeechConstant.AUDIO_MILLS, System.currentTimeMillis() - backTrackInMs);
@@ -223,7 +258,11 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
             if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, perm)) {
                 toApplyList.add(perm);
                 //进入到这里代表没有权限.
-
+                PPLog.i(TAG,perm + " is not granted");
+            }else{
+                if(perm.equals("android.permission.RECORD_AUDIO")){
+                    audioPermission = true;
+                }
             }
         }
         String tmpList[] = new String[toApplyList.size()];
@@ -236,6 +275,14 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         // 此处为android 6.0以上动态授权的回调，用户自行实现。
+        int i = permissions.length;
+        int j = 0;
+        for(j = 0; j < i; j++) {
+            PPLog.i(TAG, "requestCode:" + requestCode + " permissions:" + permissions[j] + " grantResults:" + grantResults[j]);
+            if (permissions[j].equals("android.permission.RECORD_AUDIO") && grantResults[j] == 0) {
+               audioPermission = true;
+            }
+        }
     }
 
 }
