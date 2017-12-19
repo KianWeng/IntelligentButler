@@ -14,12 +14,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import com.ant.liao.GifView;
 import com.baidu.speech.asr.SpeechConstant;
 import com.kian.intelligentbutler.baidu_speech.BaiduRecognizer;
 import com.kian.intelligentbutler.baidu_speech.BaiduUnit;
 import com.kian.intelligentbutler.baidu_speech.BaiduWakeup;
-import com.kian.intelligentbutler.baidu_speech.recognization.PidBuilder;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.CommonRecogParams;
 import com.kian.intelligentbutler.baidu_speech.IStatus;
 import com.kian.intelligentbutler.baidu_speech.recognization.StatusRecogListener;
@@ -36,14 +34,16 @@ import com.kian.intelligentbutler.ui.RecognizerView;
 import com.kian.intelligentbutler.util.PPLog;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import pl.droidsonroids.gif.GifDrawable;
+import pl.droidsonroids.gif.GifImageView;
 
 public class MainActivity extends AppCompatActivity implements RecognizerView.IRecordAudioListener,IStatus{
 
     private static final String TAG = "MainActivity";
-    private GifView gifView;
+    private GifImageView gifView;
     private LineWaveVoiceView mHorVoiceView;
     private RecognizerView recordAudioView;
     private TextView tvRecordTips;
@@ -123,15 +123,18 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     }
 
     private void initView(){
-        gifView = (GifView) findViewById(R.id.gif1);
+        gifView = (GifImageView) findViewById(R.id.gif1);
         mHorVoiceView = (LineWaveVoiceView) findViewById(R.id.horvoiceview);
         recordAudioView = (RecognizerView) findViewById(R.id.iv_recording);
         tvRecordTips = (TextView) findViewById(R.id.record_tips);
 
         //init gif view
-        gifView.setGifImage(R.mipmap.cotana02);
-        gifView.setShowDimension(300,300);
-        gifView.setGifImageType(GifView.GifImageType.COVER);
+        try {
+            GifDrawable gifDrawable = new GifDrawable(getResources(), R.mipmap.cotana02);
+            gifView.setImageDrawable(gifDrawable);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         //init noscrollviewpager
         noScrollViewPager = (NoScrollViewPager) findViewById(R.id.noscrollviewpager);
@@ -256,8 +259,8 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
 
     @Override
     protected void onStop(){
-        myRecognizer.stop();
         myWakeup.stop();
+        myRecognizer.stop();
         myTTSAPIService.stop();
         PPLog.i(TAG, "onStop");
         super.onStop();

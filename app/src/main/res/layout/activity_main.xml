@@ -7,22 +7,22 @@
     tools:context="com.kian.intelligentbutler.MainActivity">
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         android:orientation="vertical"
-        tools:layout_editor_absoluteY="0dp"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/noscrollviewpager"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:id="@+id/linearLayout"
-        app:layout_constraintHorizontal_bias="0.0">
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.ant.liao.GifView
+        <pl.droidsonroids.gif.GifImageView
             android:id="@+id/gif1"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_gravity="center"
-            android:enabled="false" />
+            android:layout_gravity="center" />
 
         <TextView
             android:layout_width="match_parent"
