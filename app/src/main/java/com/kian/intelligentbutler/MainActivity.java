@@ -200,26 +200,17 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     protected  void handleMsg(Message msg){
 
         switch (msg.what) { // 处理StatusRecogListener中的状态回调
-            case STATUS_FINISHED:
-                PPLog.i(TAG, msg.obj.toString());
-                //故意不写break
+            case STATUS_RECOGNITION:
+                mHorVoiceView.stopRecord();
             case STATUS_NONE:
             case STATUS_READY:
             case STATUS_SPEAKING:
-            case STATUS_RECOGNITION:
+            case STATUS_FINISHED:
                 status = msg.what;
+                PPLog.i(TAG, msg.obj.toString());
                 break;
             case STATUS_WAKEUP_SUCCESS:
-                Map<String, Object> params = new LinkedHashMap<String, Object>();
-                params.put(SpeechConstant.ACCEPT_AUDIO_VOLUME, false);
-                params.put(SpeechConstant.VAD,SpeechConstant.VAD_DNN);
-                int pid = PidBuilder.create().model(PidBuilder.SEARCH).toPId(); //如识别短句，不需要需要逗号，将PidBuilder.INPUT改为搜索模型PidBuilder.SEARCH
-                params.put(SpeechConstant.PID,pid);
-                if (backTrackInMs > 0) { // 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
-                    params.put(SpeechConstant.AUDIO_MILLS, System.currentTimeMillis() - backTrackInMs);
-                }
-                myRecognizer.cancel();
-                myRecognizer.start(params);
+                onRecognizeStart();
                 break;
             case STATUS_TTS_INIT_SUCCESS:
                 myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
@@ -264,9 +255,17 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     }
 
     @Override
+    protected void onStop(){
+        myRecognizer.stop();
+        myWakeup.stop();
+        myTTSAPIService.stop();
+        PPLog.i(TAG, "onStop");
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         myRecognizer.release();
-        myWakeup.stop();
         myWakeup.release();
         myTTSAPIService.release();
         PPLog.i(TAG, "onDestory");
