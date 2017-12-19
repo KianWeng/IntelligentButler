@@ -1,4 +1,4 @@
-package com.kian.intelligentbutler.baidu_speech.recognization;
+package com.kian.intelligentbutler.baidu_speech;
 
 /**
  * Created by Kian on 2017/12/11.
@@ -13,6 +13,9 @@ public interface IStatus {
 
     int STATUS_FINISHED = 6;
     int STATUS_STOPPED = 10;
+
+    int STATUS_TTS_INIT_SUCCESS = 6001;
+    int STATUS_TTS_INIT_FAIL = 6002;
 
     int STATUS_WAITING_READY = 8001;
     int WHAT_MESSAGE_STATUS = 9001;

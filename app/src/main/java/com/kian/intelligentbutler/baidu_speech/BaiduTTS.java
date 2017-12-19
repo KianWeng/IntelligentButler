@@ -1,6 +1,8 @@
 package com.kian.intelligentbutler.baidu_speech;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.util.Pair;
 
@@ -8,6 +10,7 @@ import com.baidu.tts.auth.AuthInfo;
 import com.baidu.tts.client.SpeechSynthesizeBag;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.TtsMode;
+import com.kian.intelligentbutler.MainActivity;
 import com.kian.intelligentbutler.baidu_speech.tts.InitConfig;
 import com.kian.intelligentbutler.baidu_speech.tts.OfflineResource;
 import com.kian.intelligentbutler.util.PPLog;
@@ -27,7 +30,7 @@ public class BaiduTTS {
     protected OfflineResource offlineResource;
 
     private final String TAG = "BaiduTTS";
-
+    private static Handler mainHandler;
     private static boolean isInitied = false;
     public static boolean isReady = false;
 
@@ -56,6 +59,7 @@ public class BaiduTTS {
 
         //sendToUiThread("初始化开始");
         PPLog.i(TAG,"初始化开始");
+        mainHandler = MainActivity.handler;
         boolean isMix = config.getTtsMode().equals(TtsMode.MIX);
         if (isMix) {
             try {
@@ -223,6 +227,17 @@ public class BaiduTTS {
         mSpeechSynthesizer.release();
         mSpeechSynthesizer = null;
         isInitied = false;
+    }
+
+    protected void sendToUiThread(int action, String message) {
+        Log.i(TAG, message);
+        if (mainHandler == null) { //可以不依赖mainHandler
+            return;
+        }
+        Message msg = Message.obtain();
+        msg.what = action;
+        msg.obj = message + "\n";
+        mainHandler.sendMessage(msg);
     }
 
 }

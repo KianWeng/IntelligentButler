@@ -20,7 +20,7 @@ import com.kian.intelligentbutler.baidu_speech.BaiduUnit;
 import com.kian.intelligentbutler.baidu_speech.BaiduWakeup;
 import com.kian.intelligentbutler.baidu_speech.recognization.PidBuilder;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.CommonRecogParams;
-import com.kian.intelligentbutler.baidu_speech.recognization.IStatus;
+import com.kian.intelligentbutler.baidu_speech.IStatus;
 import com.kian.intelligentbutler.baidu_speech.recognization.StatusRecogListener;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.AllRecogParams;
 import com.kian.intelligentbutler.baidu_speech.recognization.params.OfflineRecogParams;
@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     protected int status;
     protected boolean enableOffline = false;
     protected CommonRecogParams apiParams;
-    private Handler handler;
+    public static Handler handler;
     private static boolean audioPermission = false;
     /**
      *  0: 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
@@ -91,22 +91,26 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                 }
 
                 while (true) {
-                    PPLog.i(TAG,"audioPermission is " + audioPermission + " wait until audio permission is granted.");
                     if(audioPermission) {
                         PPLog.i(TAG,"audio permission is granted ,start wakeup service.");
                         startWakeup();
                         myTTSAPIService = TTSAPIService.getInstance();
-
-                        try {
-                            Thread.sleep(1500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        if (myTTSAPIService.isReady())
-                            myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
+//                        try {
+//                            Thread.sleep(1500);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                        if (myTTSAPIService.isReady())
+//                            myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
                         break;
                     }
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    PPLog.i(TAG,"audioPermission is " + audioPermission + " wait until audio permission is granted.");
 
                 }
             }
@@ -190,10 +194,12 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                 params.put(SpeechConstant.PID,pid);
                 if (backTrackInMs > 0) { // 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
                     params.put(SpeechConstant.AUDIO_MILLS, System.currentTimeMillis() - backTrackInMs);
-
                 }
                 myRecognizer.cancel();
                 myRecognizer.start(params);
+                break;
+            case STATUS_TTS_INIT_SUCCESS:
+                myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
                 break;
         }
 

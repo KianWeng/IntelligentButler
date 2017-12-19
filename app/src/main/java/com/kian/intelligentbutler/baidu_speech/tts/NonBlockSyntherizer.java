@@ -7,13 +7,14 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.kian.intelligentbutler.baidu_speech.BaiduTTS;
+import com.kian.intelligentbutler.baidu_speech.IStatus;
 import com.kian.intelligentbutler.util.PPLog;
 
 /**
  * Created by Kian on 2017/12/18.
  */
 
-public class NonBlockSyntherizer extends BaiduTTS {
+public class NonBlockSyntherizer extends BaiduTTS implements IStatus{
     private final int INIT = 1;
     private final int RELEASE = 11;
     private HandlerThread hThread;
@@ -39,7 +40,7 @@ public class NonBlockSyntherizer extends BaiduTTS {
                         boolean isSuccess = init(config);
                         if (isSuccess) {
                             // speak("初始化成功");
-                            //sendToUiThread("NonBlockSyntherizer 初始化成功");
+                            sendToUiThread(STATUS_TTS_INIT_SUCCESS,"NonBlockSyntherizer 初始化成功");
                             PPLog.i(TAG,"NonBlockSyntherizer 初始化成功");
                         } else {
                             //sendToUiThread("合成引擎初始化失败, 请查看日志");

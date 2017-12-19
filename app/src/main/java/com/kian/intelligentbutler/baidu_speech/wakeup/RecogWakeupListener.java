@@ -2,7 +2,7 @@ package com.kian.intelligentbutler.baidu_speech.wakeup;
 
 import android.os.Handler;
 
-import com.kian.intelligentbutler.baidu_speech.recognization.IStatus;
+import com.kian.intelligentbutler.baidu_speech.IStatus;
 import com.kian.intelligentbutler.util.PPLog;
 
 /**
