@@ -3,10 +3,13 @@ package com.kian.intelligentbutler.mqtt;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.kian.intelligentbutler.util.PPLog;
@@ -35,8 +38,8 @@ public class MQTTService extends Service{
     private String host = "tcp://45.32.7.217:1883";
     private String userName = "admin";
     private String passWord = "password";
-    private static String myTopic = "light_3547214";
-    private String clientId = "android";
+    private static String myTopic = "android/common";
+    private String clientId = "Android_";
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         init();
@@ -79,6 +82,7 @@ public class MQTTService extends Service{
     private void init() {
         // 服务器地址（协议+地址+端口号）
         String uri = host;
+        clientId = clientId + getIMEI(this);
         client = new MqttAndroidClient(this, uri, clientId);
         // 设置MQTT监听并且接受消息
         client.setCallback(mqttCallback);
@@ -193,7 +197,9 @@ public class MQTTService extends Service{
         }
     };
 
-    /** 判断网络是否连接 */
+    /**
+     * 判断网络是否连接
+     */
     private boolean isConnectIsNomarl() {
         ConnectivityManager connectivityManager = (ConnectivityManager) this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
@@ -205,6 +211,20 @@ public class MQTTService extends Service{
             Log.i(TAG, "MQTT 没有可用网络");
             return false;
         }
+    }
+
+    /**
+     * 获取手机IMEI号
+     *
+     * 需要动态权限: android.permission.READ_PHONE_STATE
+     */
+    public static String getIMEI(Context context) {
+        String imei = "0123456789";
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
+        if(PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(context,"android.permission.READ_PHONE_STATE")) {
+            imei = telephonyManager.getDeviceId();
+        }
+        return imei;
     }
 
     @Nullable
