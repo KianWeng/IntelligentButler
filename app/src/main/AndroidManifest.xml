@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -29,6 +30,8 @@
         <service
             android:name="com.baidu.speech.VoiceRecognitionService"
             android:exported="false" />
+        <service android:name="org.eclipse.paho.android.service.MqttService" />
+        <service android:name=".mqtt.MQTTService"/>
 
         <activity android:name=".MainActivity">
             <intent-filter>
