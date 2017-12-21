@@ -5,6 +5,8 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.kian.intelligentbutler.util.PPLog;
+
 import java.util.List;
 
 /**
@@ -40,7 +42,9 @@ public class MyAdapter extends PagerAdapter{
     @Override
     public Object instantiateItem(ViewGroup view, int position)  //实例化Item
     {
+        PPLog.i("MyAdaper", "current view position is " + position);
         view.addView(viewLists.get(position), 0);
+        view.setTag(position);//为每一个view添加一个tag便于后续通过tag找到
         return viewLists.get(position);
     }
 }

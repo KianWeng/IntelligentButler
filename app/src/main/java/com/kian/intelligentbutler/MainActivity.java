@@ -1,6 +1,7 @@
 package com.kian.intelligentbutler;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Handler;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.baidu.speech.asr.SpeechConstant;
+import com.kian.intelligentbutler.api.weather.Weather;
 import com.kian.intelligentbutler.baidu_speech.BaiduRecognizer;
 import com.kian.intelligentbutler.baidu_speech.BaiduUnit;
 import com.kian.intelligentbutler.baidu_speech.BaiduWakeup;
@@ -27,10 +29,12 @@ import com.kian.intelligentbutler.baidu_speech.tts.TTSAPIService;
 import com.kian.intelligentbutler.baidu_speech.wakeup.IWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.RecogWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.WakeupParams;
+import com.kian.intelligentbutler.mqtt.MQTTService;
 import com.kian.intelligentbutler.ui.LineWaveVoiceView;
 import com.kian.intelligentbutler.ui.MyAdapter;
 import com.kian.intelligentbutler.ui.NoScrollViewPager;
 import com.kian.intelligentbutler.ui.RecognizerView;
+import com.kian.intelligentbutler.ui.weather.WeatherView;
 import com.kian.intelligentbutler.util.PPLog;
 
 import java.util.ArrayList;
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     protected BaiduWakeup myWakeup;
     protected BaiduUnit myUnit;
     protected TTSAPIService myTTSAPIService;
+    private WeatherView weatherView;
     protected int status;
     protected boolean enableOffline = false;
     protected CommonRecogParams apiParams;
@@ -114,6 +119,8 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
             }
         });
         thread.start();
+        //启动MQTT服务
+        startService(new Intent(this, MQTTService.class));
     }
 
     private void startWakeup(){
@@ -218,8 +225,36 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
             case STATUS_TTS_INIT_SUCCESS:
                 myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
                 break;
+            case STATUS_UPDATE_ViewPager:
+                updateViewPager(msg.arg1,msg.obj);
+                break;
+            default:
+                break;
         }
 
+    }
+
+    private void updateViewPager(int viewPagerID,Object object){
+        PPLog.i(TAG,"view pager ID is " + viewPagerID);
+        switch (viewPagerID){
+            case 0:
+                noScrollViewPager.setCurrentItem(0,true);
+                break;
+            case 1:
+                Weather weather = (Weather)object;
+                if(weatherView == null) {
+                    weatherView = new WeatherView(this, noScrollViewPager.findViewWithTag(WEATHER_VIEWPAGER_ID));
+                    weatherView.init();
+                }
+                weatherView.updateData(weather);
+                noScrollViewPager.setCurrentItem(1,true);
+                break;
+            case 2:
+                noScrollViewPager.setCurrentItem(2,true);
+                break;
+            default:
+                break;
+        }
     }
 
     @Override

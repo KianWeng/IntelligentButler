@@ -1,6 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/green">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/weather_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="@color/black"
+                android:text="多云转小雨"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginLeft="20dp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/weather_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="@color/black"
+                android:text="杭州"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="20dp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/weather_img"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@mipmap/hf_103"
+            android:layout_marginLeft="30dp"/>
+
+        <TextView
+            android:id="@+id/weather_temp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:text="34℃"
+            android:textSize="40dp"
+            android:layout_gravity="center|center_horizontal"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/weather_wind"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="西北风"
+                android:textSize="15dp"
+                android:textColor="@color/black"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="20dp"/>
+            <TextView
+                android:id="@+id/weather_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="17:15发布"
+                android:textSize="15dp"
+                android:textColor="@color/black"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginRight="20dp"/>
+
+        </LinearLayout>
+    </LinearLayout>
+    <ListView
+        android:id="@+id/weather_listview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@color/color_666666"
+        android:dividerHeight="1px">
+    </ListView>
 
 </LinearLayout>
