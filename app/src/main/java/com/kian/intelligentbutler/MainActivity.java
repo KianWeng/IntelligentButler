@@ -30,6 +30,7 @@ import com.kian.intelligentbutler.baidu_speech.wakeup.IWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.RecogWakeupListener;
 import com.kian.intelligentbutler.baidu_speech.wakeup.WakeupParams;
 import com.kian.intelligentbutler.mqtt.MQTTService;
+import com.kian.intelligentbutler.service.LocationService;
 import com.kian.intelligentbutler.ui.LineWaveVoiceView;
 import com.kian.intelligentbutler.ui.MyAdapter;
 import com.kian.intelligentbutler.ui.NoScrollViewPager;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
     protected BaiduUnit myUnit;
     protected TTSAPIService myTTSAPIService;
     private WeatherView weatherView;
+    private MQTTService mMQTTService;
     protected int status;
     protected boolean enableOffline = false;
     protected CommonRecogParams apiParams;
@@ -92,7 +94,9 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         initBaiduSpeech();
 
         //启动MQTT服务
-        startService(new Intent(this, MQTTService.class));
+        mMQTTService = MQTTService.getInstance();
+        //启动位置服务
+        startService(new Intent(this, LocationService.class));
     }
 
     /**
@@ -319,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                     PPLog.i(TAG,"未获取到音频权限！");
                 }
             }
-        },1500);
+        },2500);
         PPLog.i(TAG, "onResume");
         super.onResume();
     }
@@ -338,6 +342,9 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         myRecognizer.release();
         myWakeup.release();
         myTTSAPIService.release();
+        //stopService(new Intent(this, MQTTService.class));
+        mMQTTService.release();
+        stopService(new Intent(this, LocationService.class));
         PPLog.i(TAG, "onDestory");
         super.onDestroy();
     }
@@ -349,7 +356,10 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                 Manifest.permission.ACCESS_NETWORK_STATE,
                 Manifest.permission.INTERNET,
                 Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.WAKE_LOCK
         };
 
         ArrayList<String> toApplyList = new ArrayList<String>();

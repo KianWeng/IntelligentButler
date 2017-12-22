@@ -1,49 +1,52 @@
 package com.kian.intelligentbutler.mqtt;
 
-import android.app.Service;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.kian.intelligentbutler.util.ContextUtil;
 import com.kian.intelligentbutler.util.PPLog;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Created by YYTD on 2017/12/20.
+ * Created by Kian on 2017/12/20.
  */
 
-public class MQTTService extends Service{
+public class MQTTService {
     private static final String TAG = "MQTTService";
 
     private static MqttAndroidClient client;
     private MqttConnectOptions conOpt;
-
+    private static MQTTService instance;
     private String host = "tcp://45.32.7.217:1883";
     private String userName = "admin";
     private String passWord = "password";
     private static String myTopic = "android/common";
     private String clientId = "Android_";
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+
+    private MQTTService(){
         init();
-        return super.onStartCommand(intent, flags, startId);
+    }
+
+    public static MQTTService getInstance(){
+        synchronized (MQTTService.class){
+            if(instance == null){
+                instance = new MQTTService();
+            }
+        }
+        return instance;
     }
 
     public static void publish(String topic,String msg){
@@ -82,8 +85,8 @@ public class MQTTService extends Service{
     private void init() {
         // 服务器地址（协议+地址+端口号）
         String uri = host;
-        clientId = clientId + getIMEI(this);
-        client = new MqttAndroidClient(this, uri, clientId);
+        clientId = clientId + getIMEI(ContextUtil.getInstance());
+        client = new MqttAndroidClient(ContextUtil.getInstance(), uri, clientId);
         // 设置MQTT监听并且接受消息
         client.setCallback(mqttCallback);
 
@@ -122,16 +125,6 @@ public class MQTTService extends Service{
             doClientConnection();
         }
 
-    }
-
-    @Override
-    public void onDestroy() {
-        try {
-            client.disconnect();
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-        super.onDestroy();
     }
 
     /** 连接MQTT服务器 */
@@ -201,7 +194,7 @@ public class MQTTService extends Service{
      * 判断网络是否连接
      */
     private boolean isConnectIsNomarl() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) this.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager) ContextUtil.getInstance().getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
         if (info != null && info.isAvailable()) {
             String name = info.getTypeName();
@@ -227,9 +220,13 @@ public class MQTTService extends Service{
         return imei;
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public void release() {
+        try {
+            client.disconnect();
+            instance = null;
+            client = null;
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -31,7 +33,7 @@
             android:name="com.baidu.speech.VoiceRecognitionService"
             android:exported="false" />
         <service android:name="org.eclipse.paho.android.service.MqttService" />
-        <service android:name=".mqtt.MQTTService"/>
+        <service android:name=".service.LocationService"/>
 
         <activity android:name=".MainActivity">
             <intent-filter>
