@@ -77,10 +77,11 @@ public class WeatherDomain implements IStatus{
         if(result.status.equals("ok")) {
             PPLog.i(TAG, result.now.cond_txt);
             myTTSAPIService = TTSAPIService.getInstance();
-            myTTSAPIService.speak(result.basic.location + "今天的天气是" + result.now.cond_txt + ",当前温度"
-            + result.now.tmp + "," + result.now.wind_dir + "风力" + result.now.wind_sc +
-            "风速" + result.now.wind_spd + "公里每小时");
-            sendMessage(STATUS_UPDATE_ViewPager, WEATHER_VIEWPAGER_ID, result);
+            myTTSAPIService.speak("为您查询到最近三天的天气结果。");
+//            myTTSAPIService.speak(result.basic.location + "今天的天气是" + result.now.cond_txt + ",当前温度"
+//            + result.now.tmp + "," + result.now.wind_dir + "风力" + result.now.wind_sc +
+//            "风速" + result.now.wind_spd + "公里每小时");
+            sendMessage(TYPE_UPDATE_UI, WEATHER_VIEWPAGER_ID, result);
         }
     }
 

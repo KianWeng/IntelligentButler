@@ -1,6 +1,7 @@
 package com.kian.intelligentbutler.baidu_speech.wakeup;
 
 import android.os.Handler;
+import android.os.Message;
 
 import com.kian.intelligentbutler.baidu_speech.BaiduTTS;
 import com.kian.intelligentbutler.baidu_speech.IStatus;
@@ -24,7 +25,8 @@ public class RecogWakeupListener implements IWakeupListener,IStatus{
     public void onSuccess(String word, WakeupResult result) {
         PPLog.i(TAG, "唤醒成功，唤醒词：" + word);
         if(word.equals("公羽启皓")) {
-            handler.sendMessage(handler.obtainMessage(STATUS_WAKEUP_SUCCESS));
+            //handler.sendMessage(handler.obtainMessage(STATUS_WAKEUP_SUCCESS));
+            sendMessage(TYPE_WAKEUP,STATUS_WAKEUP_SUCCESS,word);
         }
     }
 
@@ -41,5 +43,13 @@ public class RecogWakeupListener implements IWakeupListener,IStatus{
     @Override
     public void onASrAudio(byte[] data, int offset, int length) {
         PPLog.e(TAG,"audio data： "+data.length);
+    }
+
+    private void sendMessage(int what, int arg, Object obj) {
+        Message msg = Message.obtain();
+        msg.what = what;
+        msg.arg1 = arg;
+        msg.obj = obj;
+        handler.sendMessage(msg);
     }
 }

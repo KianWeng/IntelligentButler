@@ -87,55 +87,24 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
 
         };
 
-        initParams();
         initView();
         initPermission();
-        initRecog();
+        initBaiduSpeech();
 
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //wait 500ms
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                while (true) {
-                    if(audioPermission) {
-                        PPLog.i(TAG,"audio permission is granted ,start wakeup service.");
-                        startWakeup();
-                        myTTSAPIService = TTSAPIService.getInstance();
-                        break;
-                    }
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    PPLog.i(TAG,"audioPermission is " + audioPermission + " wait until audio permission is granted.");
-                }
-            }
-        });
-        thread.start();
         //启动MQTT服务
         startService(new Intent(this, MQTTService.class));
     }
 
-    private void startWakeup(){
-        WakeupParams wakeupParams = new WakeupParams(this);
-        Map<String,Object> params = wakeupParams.fetch();
-        myWakeup.start(params);
-    }
-
+    /**
+     * 初始化主页面UI
+     */
     private void initView(){
         gifView = (GifImageView) findViewById(R.id.gif1);
         mHorVoiceView = (LineWaveVoiceView) findViewById(R.id.horvoiceview);
         recordAudioView = (RecognizerView) findViewById(R.id.iv_recording);
         tvRecordTips = (TextView) findViewById(R.id.record_tips);
 
-        //init gif view
+        //初始化gif视图
         try {
             GifDrawable gifDrawable = new GifDrawable(getResources(), R.mipmap.cotana02);
             gifView.setImageDrawable(gifDrawable);
@@ -143,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
             e.printStackTrace();
         }
 
-        //init noscrollviewpager
+        //初始化主页面中的viewpager
         noScrollViewPager = (NoScrollViewPager) findViewById(R.id.noscrollviewpager);
         viewLists.add(getLayoutInflater().inflate(R.layout.welcome, null));
         viewLists.add(getLayoutInflater().inflate(R.layout.weather, null));
@@ -171,6 +140,9 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         recordAudioView.setRecordAudioListener(this);
     }
 
+    /**
+     *初始化百度语音平台的参数
+     */
     public void initParams(){
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = sp.edit();
@@ -181,10 +153,12 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         editor.commit();
     }
     /**
-     * 在onCreate中调用。初始化识别控制类MyRecognizer
+     * 在onCreate中调用。初始化百度语音的相关功能
      */
-    protected void initRecog() {
-        //init recognization
+    protected void initBaiduSpeech() {
+        //初始化语音识别、唤醒的相关参数
+        initParams();
+        //初始化语音识别类
         StatusRecogListener listener = new StatusRecogListener(handler);
         listener.setVoiceView(mHorVoiceView);
         myRecognizer = new BaiduRecognizer(this, listener);
@@ -193,12 +167,10 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         if (enableOffline) {
             myRecognizer.loadOfflineEngine(OfflineRecogParams.fetchOfflineParams());
         }
-
-        //init wakeup
+        //初始化语音唤醒类
         IWakeupListener wakeupListener = new RecogWakeupListener(handler);
         myWakeup = new BaiduWakeup(this, wakeupListener);
-
-        //init unit
+        //初始化百度UNIT平台
         myUnit = new BaiduUnit(this);
         myUnit.initAccessToken();
     }
@@ -207,31 +179,71 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         return new AllRecogParams(this);
     }
 
+    /**
+     * 开始语音唤醒服务
+     */
+    private void startWakeup(){
+        WakeupParams wakeupParams = new WakeupParams(this);
+        Map<String,Object> params = wakeupParams.fetch();
+        myWakeup.start(params);
+    }
+
+    /**
+     * 在主线程里处理各个模块发送的消息
+     * @param msg
+     */
     protected  void handleMsg(Message msg){
 
-        switch (msg.what) { // 处理StatusRecogListener中的状态回调
-            case STATUS_RECOGNITION:
-                mHorVoiceView.stopRecord();
-            case STATUS_NONE:
-            case STATUS_READY:
-            case STATUS_SPEAKING:
-            case STATUS_FINISHED:
-                status = msg.what;
-                PPLog.i(TAG, msg.obj.toString());
+        switch (msg.what) {
+            case TYPE_RECOG:
+                handleRecogMessage(msg);
                 break;
-            case STATUS_WAKEUP_SUCCESS:
-                onRecognizeStart();
+            case TYPE_WAKEUP:
+                handleWakeupMessage(msg);
                 break;
-            case STATUS_TTS_INIT_SUCCESS:
-                myTTSAPIService.speak("主人你好，欢迎使用智能管家助手，我是您的管家公羽启皓");
+            case TYPE_TTS:
+                handleTTSMessage(msg);
                 break;
-            case STATUS_UPDATE_ViewPager:
+            case TYPE_UPDATE_UI:
                 updateViewPager(msg.arg1,msg.obj);
                 break;
             default:
                 break;
         }
 
+    }
+
+    private void handleTTSMessage(Message msg){
+        switch (msg.arg1){
+            case STATUS_TTS_INIT_SUCCESS:
+                myTTSAPIService.speak(getString(R.string.welcome).toString());
+                break;
+            default:
+                break;
+        }
+    }
+    private void handleRecogMessage(Message msg){
+        switch (msg.arg1){
+            case STATUS_NONE:
+                mHorVoiceView.stopRecord();
+            case STATUS_READY:
+            case STATUS_SPEAKING:
+            case STATUS_RECOGNITION:
+            case STATUS_FINISHED:
+                status = msg.arg1;
+                PPLog.i(TAG, msg.obj.toString());
+                break;
+        }
+    }
+
+    private void handleWakeupMessage(Message msg){
+        switch (msg.arg1){
+            case STATUS_WAKEUP_SUCCESS:
+                onRecognizeStart();
+                break;
+            default:
+                break;
+        }
     }
 
     private void updateViewPager(int viewPagerID,Object object){
@@ -289,7 +301,27 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
             default:
                 break;
         }
-        mHorVoiceView.stopRecord();
+        //mHorVoiceView.stopRecord();
+    }
+
+    @Override
+    protected void onResume(){
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(audioPermission) {
+                    PPLog.i(TAG,"已经获取到音频权限，启动语音唤醒功能");
+                    //打开语音唤醒服务
+                    startWakeup();
+                    //打开语音合成服务
+                    myTTSAPIService = TTSAPIService.getInstance();
+                }else {
+                    PPLog.i(TAG,"未获取到音频权限！");
+                }
+            }
+        },1500);
+        PPLog.i(TAG, "onResume");
+        super.onResume();
     }
 
     @Override
@@ -327,6 +359,9 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
                 toApplyList.add(perm);
                 //进入到这里代表没有权限.
                 PPLog.i(TAG,perm + " is not granted");
+                if(perm.equals("android.permission.RECORD_AUDIO")){
+                    audioPermission = false;
+                }
             }else{
                 if(perm.equals("android.permission.RECORD_AUDIO")){
                     audioPermission = true;
@@ -348,7 +383,15 @@ public class MainActivity extends AppCompatActivity implements RecognizerView.IR
         for(j = 0; j < i; j++) {
             PPLog.i(TAG, "requestCode:" + requestCode + " permissions:" + permissions[j] + " grantResults:" + grantResults[j]);
             if (permissions[j].equals("android.permission.RECORD_AUDIO") && grantResults[j] == 0) {
-               audioPermission = true;
+               if(audioPermission == false){
+                   audioPermission = true;
+                   PPLog.i(TAG,"已经获取到音频权限，启动语音唤醒功能");
+                   //打开语音唤醒服务
+                   startWakeup();
+                   //打开语音合成服务
+                   myTTSAPIService = TTSAPIService.getInstance();
+               }
+
             }
         }
     }

@@ -229,14 +229,14 @@ public class BaiduTTS {
         isInitied = false;
     }
 
-    protected void sendToUiThread(int action, String message) {
-        Log.i(TAG, message);
+    protected void sendToUiThread(int what, int arg, Object obj) {
         if (mainHandler == null) { //可以不依赖mainHandler
             return;
         }
         Message msg = Message.obtain();
-        msg.what = action;
-        msg.obj = message + "\n";
+        msg.what = what;
+        msg.arg1 = arg;
+        msg.obj = obj;
         mainHandler.sendMessage(msg);
     }
 

@@ -40,7 +40,7 @@ public class NonBlockSyntherizer extends BaiduTTS implements IStatus{
                         boolean isSuccess = init(config);
                         if (isSuccess) {
                             // speak("初始化成功");
-                            sendToUiThread(STATUS_TTS_INIT_SUCCESS,"NonBlockSyntherizer 初始化成功");
+                            sendToUiThread(TYPE_TTS,STATUS_TTS_INIT_SUCCESS,"NonBlockSyntherizer 初始化成功");
                             PPLog.i(TAG,"NonBlockSyntherizer 初始化成功");
                         } else {
                             //sendToUiThread("合成引擎初始化失败, 请查看日志");

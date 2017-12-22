@@ -28,19 +28,22 @@ public class StatusRecogListener implements IRecogListener,IStatus {
     @Override
     public void onAsrReady() {
         status = STATUS_READY;
-        sendMessage("引擎就绪，可以开始说话。", status);
+        //sendMessage("引擎就绪，可以开始说话。", status);
+        sendMessage(TYPE_RECOG,status,"引擎就绪，可以开始说话。");
     }
 
     @Override
     public void onAsrBegin() {
         status = STATUS_SPEAKING;
-        sendMessage("检测到用户说话", status);
+        //sendMessage("检测到用户说话", status);
+        sendMessage(TYPE_RECOG,status,"检测到用户说话");
     }
 
     @Override
     public void onAsrEnd() {
         status = STATUS_RECOGNITION;
-        sendMessage("检测到用户说话结束", status);
+        //sendMessage("检测到用户说话结束", status);
+        sendMessage(TYPE_RECOG,status,"检测到用户说话结束");
     }
 
     @Override
@@ -50,13 +53,15 @@ public class StatusRecogListener implements IRecogListener,IStatus {
     public void onAsrFinalResult(String[] results, RecogResult recogResult) {
         String message = "识别结束，结果是”" + results[0] + "”";
         status = STATUS_FINISHED;
-        sendMessage(message, status);
+        //sendMessage(message, status);
+        sendMessage(TYPE_RECOG,status,message);
     }
 
     @Override
     public void onAsrFinish(RecogResult recogResult) {
         status = STATUS_FINISHED;
-        sendMessage("识别一段话结束。如果是长语音的情况会继续识别下段话。", status);
+        //sendMessage("识别一段话结束。如果是长语音的情况会继续识别下段话。", status);
+        sendMessage(TYPE_RECOG,status,"识别一段话结束。如果是长语音的情况会继续识别下段话。");
     }
 
 
@@ -64,7 +69,8 @@ public class StatusRecogListener implements IRecogListener,IStatus {
     public void onAsrFinishError(int errorCode,int subErrorCode, String errorMessage, String descMessage,RecogResult recogResult) {
         String message = "识别错误, 错误码：" + errorCode + "," + subErrorCode;
         status = STATUS_FINISHED;
-        sendMessage(message, status);
+        //sendMessage(message, status);
+        sendMessage(TYPE_RECOG,status,message);
     }
 
     /**
@@ -73,7 +79,8 @@ public class StatusRecogListener implements IRecogListener,IStatus {
     @Override
     public void onAsrLongFinish() {
         status = STATUS_FINISHED;
-        sendMessage("长语音识别结束。", status);
+        //sendMessage("长语音识别结束。", status);
+        sendMessage(TYPE_RECOG,status,"长语音识别结束。");
     }
 
     @Override
@@ -96,14 +103,16 @@ public class StatusRecogListener implements IRecogListener,IStatus {
     @Override
     public void onAsrExit() {
         status = STATUS_NONE;
-        sendMessage("识别引擎结束并空闲中", status);
+        //sendMessage("识别引擎结束并空闲中", status);
+        sendMessage(TYPE_RECOG,status,"识别引擎结束并空闲中");
     }
 
     @Override
     public void onAsrOnlineNluResult(String nluResult) {
         status = STATUS_FINISHED;
         if (!nluResult.isEmpty()) {
-            sendMessage("原始语义识别结果json：" + nluResult, status);
+            //sendMessage("原始语义识别结果json：" + nluResult, status);
+            sendMessage(TYPE_RECOG,status,"原始语义识别结果json：" + nluResult);
             DomainService.getInstance().handleNluResult(nluResult);
         }
     }
@@ -118,11 +127,11 @@ public class StatusRecogListener implements IRecogListener,IStatus {
         this.mHorVoiceView = mHorVoiceView;
     }
 
-    private void sendMessage(String message, int what) {
+    private void sendMessage(int what, int arg, Object obj) {
         Message msg = Message.obtain();
         msg.what = what;
-        msg.arg1 = status;
-        msg.obj = message + "\n";
+        msg.arg1 = arg;
+        msg.obj = obj;
         handler.sendMessage(msg);
     }
 }
