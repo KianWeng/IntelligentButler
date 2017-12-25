@@ -16,6 +16,15 @@ import android.support.v4.content.ContextCompat;
 
 import com.kian.intelligentbutler.util.PPLog;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.Locale;
 
@@ -87,7 +96,22 @@ public class LocationService extends Service{
             mLocation = location;
             //解除监听
             //locationManager.removeUpdates(locationListener);
-            getAddress(mLocation);
+            //使用google geocoder方法
+            //getAddress(mLocation);
+            Thread thread  = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        //使用百度API获取
+                        getCoordinate(mLocation);
+                    }catch (IOException e){
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            thread.start();
+
         }
     };
 
@@ -107,5 +131,54 @@ public class LocationService extends Service{
             city = addressList.get(0).getSubAdminArea();
         }
 
+    }
+
+    public String getCoordinate(Location location) throws IOException {
+        StringBuilder resultData = new StringBuilder();
+        //秘钥换成你的秘钥，申请地址在下边
+        //http://api.map.baidu.com/geocoder?output=json&location=23.131427,113.379763&ak=esNPFDwwsXWtsQfw4NMNmur1
+        String url ="http://api.map.baidu.com/geocoder?output=json&ak="+"esNPFDwwsXWtsQfw4NMNmur1"+"&location="
+                + location.getLatitude() + ","+ location.getLongitude();
+        URL myURL = null;
+        URLConnection httpsConn = null;
+        PPLog.i(TAG,"url is:" + url);
+        try {
+            myURL = new URL(url);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        InputStreamReader insr = null;
+        BufferedReader br = null;
+        try {
+            httpsConn = (URLConnection) myURL.openConnection();// 不使用代理
+            if (httpsConn != null) {
+                insr = new InputStreamReader( httpsConn.getInputStream(), "UTF-8");
+                br = new BufferedReader(insr);
+                String data = null;
+                while((data= br.readLine())!=null){
+                    resultData.append(data);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if(insr!=null){
+                insr.close();
+            }
+            if(br!=null){
+                br.close();
+            }
+        }
+        PPLog.i(TAG,"Result is: " + resultData.toString());
+        try {
+            JSONObject jsonObject = new JSONObject(resultData.toString());
+            city = jsonObject.getJSONObject("result")
+                    .getJSONObject("addressComponent").getString("city");
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+
+        PPLog.i(TAG,"Current city is " + city);
+        return city;
     }
 }
